@@ -21,59 +21,26 @@ public class User implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 
-     */
     private String username;
 
-    /**
-     * 
-     */
     private String userAccount;
 
-    /**
-     * 
-     */
     private String avatar;
 
-    /**
-     * 
-     */
     private Integer gender;
 
-    /**
-     * 
-     */
     private String userPassword;
 
-    /**
-     * 
-     */
     private String phoneNum;
 
-    /**
-     * 
-     */
     private String email;
 
-    /**
-     * 
-     */
     private Integer userStatus;
 
-    /**
-     * 
-     */
     private Date createTime;
 
-    /**
-     * 
-     */
     private Date updateTime;
 
-    /**
-     * 
-     */
     private Integer isDelete;
 
     @TableField(exist = false)
