@@ -4,19 +4,25 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.usercenter.usercenterbackend.model.User;
 import com.usercenter.usercenterbackend.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
     @Resource
     private UserMapper userMapper;
+
+    private static final String SALT = "password";
+    private static final String LOGIN_STATE = "loginState";
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         //Verification
@@ -57,6 +63,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         boolean saveResult = this.save(user);
         if(!saveResult) return -1;
         return user.getId();
+    }
+
+    @Override
+    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+        //Verification
+        if(StringUtils.isAnyBlank(userAccount, userPassword)){
+            return null;
+        }
+        if(userAccount.length() < 4){
+            return null;
+        }
+        if(userPassword.length() < 8){
+            return null;
+        }
+
+        //userAccount can't contain special characters
+        String validPatter = "[\\\\u00A0\\\\s\\\"`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        Matcher matcher = Pattern.compile(validPatter).matcher(userAccount);
+        if(matcher.find()) return null;
+
+        //Encrypt user password
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+
+        //Validate username matches password
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        queryWrapper.eq("userPassword", encryptPassword);
+        User user = userMapper.selectOne(queryWrapper);
+        if(user == null) {
+            log.info("User login failed because username can't match password.");
+            return null;
+        }
+
+        //save user login status
+        request.getSession().setAttribute(LOGIN_STATE, user);
+
+        //desensitization to return user information to frontend
+        User insensitiveUser = new User();
+        insensitiveUser.setId(insensitiveUser.getId());
+        insensitiveUser.setUsername(insensitiveUser.getUsername());
+        insensitiveUser.setUserAccount(insensitiveUser.getUserAccount());
+        insensitiveUser.setAvatar(insensitiveUser.getAvatar());
+        insensitiveUser.setGender(insensitiveUser.getGender());
+        insensitiveUser.setPhoneNum(insensitiveUser.getPhoneNum());
+        insensitiveUser.setEmail(insensitiveUser.getEmail());
+        insensitiveUser.setUserStatus(insensitiveUser.getUserStatus());
+        insensitiveUser.setCreateTime(insensitiveUser.getCreateTime());
+
+        return insensitiveUser;
     }
 }
 
