@@ -96,20 +96,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return null;
         }
 
-        //save user login status
-        request.getSession().setAttribute(LOGIN_STATE, user);
-
         //desensitization to return user information to frontend
         User insensitiveUser = new User();
-        insensitiveUser.setId(insensitiveUser.getId());
-        insensitiveUser.setUsername(insensitiveUser.getUsername());
-        insensitiveUser.setUserAccount(insensitiveUser.getUserAccount());
-        insensitiveUser.setAvatar(insensitiveUser.getAvatar());
-        insensitiveUser.setGender(insensitiveUser.getGender());
-        insensitiveUser.setPhoneNum(insensitiveUser.getPhoneNum());
-        insensitiveUser.setEmail(insensitiveUser.getEmail());
-        insensitiveUser.setUserStatus(insensitiveUser.getUserStatus());
-        insensitiveUser.setCreateTime(insensitiveUser.getCreateTime());
+        insensitiveUser.setId(user.getId());
+        insensitiveUser.setUsername(user.getUsername());
+        insensitiveUser.setUserAccount(user.getUserAccount());
+        insensitiveUser.setAvatar(user.getAvatar());
+        insensitiveUser.setGender(user.getGender());
+        insensitiveUser.setPhoneNum(user.getPhoneNum());
+        insensitiveUser.setEmail(user.getEmail());
+        insensitiveUser.setUserStatus(user.getUserStatus());
+        insensitiveUser.setCreateTime(user.getCreateTime());
+
+        //save user login status
+        request.getSession().setAttribute(LOGIN_STATE, insensitiveUser);
 
         return insensitiveUser;
     }
