@@ -21,17 +21,22 @@ class UserServiceTest {
         user.setUserPassword("xxx");
         user.setPhoneNum("123");
         user.setEmail("456");
+
         boolean result = userService.save(user);
-        System.out.println(user.getId());
+        System.out.println("User ID is: " + user.getId());
         Assertions.assertTrue(result);
     }
 
     @Test
     void userRegister() {
-        String userAccount = "Joe";
-        String userPassword = "12345678";
+        String userAccount = "Mike";
+        String userPassword = "1234567890";
         String checkPassword = "123456789";
         long result = userService.userRegister(userAccount, userPassword, checkPassword);
         Assertions.assertEquals(-1, result);
+
+        checkPassword = "1234567890";
+        result = userService.userRegister(userAccount, userPassword, checkPassword);
+        Assertions.assertTrue(result > 0);
     }
 }
