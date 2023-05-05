@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 public interface UserService extends IService<User> {
 
     /**
-     *
+     *  User Register
      * @param userAccount
      * @param userPassword
      * @param checkPassword
@@ -20,5 +20,19 @@ public interface UserService extends IService<User> {
      */
     long userRegister(String userAccount, String userPassword, String checkPassword);
 
+    /**
+     *  User Login
+     * @param userAccount
+     * @param userPassword
+     * @param request
+     * @return
+     */
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
+
+    /**
+     * User Desensitization
+     * @param user
+     * @return
+     */
+    User getInsensitiveUser(User user);
 }

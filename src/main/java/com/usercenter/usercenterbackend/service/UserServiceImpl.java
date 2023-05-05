@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.usercenter.usercenterbackend.constant.UserConstant.LOGIN_STATE;
+
 
 @Service
 @Slf4j
@@ -22,7 +24,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private UserMapper userMapper;
 
     private static final String SALT = "password";
-    private static final String LOGIN_STATE = "loginState";
+
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         //Verification
@@ -53,7 +55,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(count > 0) return -1;
 
         //Encrypt user password
-        final String SALT = "password";
         String encryption = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
 
         //insert user info into db
@@ -96,7 +97,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return null;
         }
 
-        //desensitization to return user information to frontend
+        //desensitization
+        User insensitiveUser = getInsensitiveUser(user);
+
+        //save user login status
+        request.getSession().setAttribute(LOGIN_STATE, insensitiveUser);
+
+        return insensitiveUser;
+    }
+
+    /**
+     * desensitization to return user information to frontend
+     * @param user
+     * @return
+     */
+    @Override
+    public User getInsensitiveUser(User user) {
         User insensitiveUser = new User();
         insensitiveUser.setId(user.getId());
         insensitiveUser.setUsername(user.getUsername());
@@ -107,10 +123,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         insensitiveUser.setEmail(user.getEmail());
         insensitiveUser.setUserStatus(user.getUserStatus());
         insensitiveUser.setCreateTime(user.getCreateTime());
-
-        //save user login status
-        request.getSession().setAttribute(LOGIN_STATE, insensitiveUser);
-
+        insensitiveUser.setRole(user.getRole());
         return insensitiveUser;
     }
 }
