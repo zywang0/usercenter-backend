@@ -19,32 +19,33 @@ import static com.usercenter.usercenterbackend.constant.UserConstant.LOGIN_STATE
 
 @Service
 @Slf4j
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
     @Resource
     private UserMapper userMapper;
 
     private static final String SALT = "password";
 
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String number) {
         //Verification
-        if(StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)){
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, number)) {
             return -1;
         }
-        if(userAccount.length() < 4){
+        if (userAccount.length() < 4) {
             return -1;
         }
-        if(userPassword.length() < 8 || checkPassword.length() < 8){
+        if (userPassword.length() < 8 || checkPassword.length() < 8) {
             return -1;
         }
+        if (number.length() > 5) return -1;
 
         //userAccount can't contain special characters
-        String validPatter = "[\\\\u00A0\\\\s\\\"`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        String validPatter = "[`~!@#$%^&*()+=|{}':;',\\\\\\\\[\\\\\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPatter).matcher(userAccount);
-        if(matcher.find()) return -1;
+        if (matcher.find()) return -1;
 
         //Password and confirmation password must be the same
-        if(!userPassword.equals(checkPassword)){
+        if (!userPassword.equals(checkPassword)) {
             return -1;
         }
 
@@ -52,7 +53,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         long count = userMapper.selectCount(queryWrapper);
-        if(count > 0) return -1;
+        if (count > 0) return -1;
+
+        //user number can't duplicate
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("number", number);
+        count = userMapper.selectCount(queryWrapper);
+        if (count > 0) return -1;
 
         //Encrypt user password
         String encryption = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -61,28 +68,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryption);
+        user.setNumber(number);
         boolean saveResult = this.save(user);
-        if(!saveResult) return -1;
+        if (!saveResult) return -1;
         return user.getId();
     }
 
     @Override
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //Verification
-        if(StringUtils.isAnyBlank(userAccount, userPassword)){
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
-        if(userAccount.length() < 4){
+        if (userAccount.length() < 4) {
             return null;
         }
-        if(userPassword.length() < 8){
+        if (userPassword.length() < 8) {
             return null;
         }
 
         //userAccount can't contain special characters
         String validPatter = "[\\\\u00A0\\\\s\\\"`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPatter).matcher(userAccount);
-        if(matcher.find()) return null;
+        if (matcher.find()) return null;
 
         //Encrypt user password
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -92,7 +100,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.eq("userAccount", userAccount);
         queryWrapper.eq("userPassword", encryptPassword);
         User user = userMapper.selectOne(queryWrapper);
-        if(user == null) {
+        if (user == null) {
             log.info("User login failed because username can't match password.");
             return null;
         }
@@ -108,6 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * desensitization to return user information to frontend
+     *
      * @param user
      * @return
      */
@@ -125,6 +134,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         insensitiveUser.setUserStatus(user.getUserStatus());
         insensitiveUser.setCreateTime(user.getCreateTime());
         insensitiveUser.setRole(user.getRole());
+        insensitiveUser.setNumber(user.getNumber());
         return insensitiveUser;
     }
 

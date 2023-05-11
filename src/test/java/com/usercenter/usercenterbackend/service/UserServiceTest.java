@@ -32,11 +32,12 @@ class UserServiceTest {
         String userAccount = "Mike";
         String userPassword = "1234567890";
         String checkPassword = "123456789";
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        String number = "2";
+        long result = userService.userRegister(userAccount, userPassword, checkPassword, number);
         Assertions.assertEquals(-1, result);
 
         checkPassword = "1234567890";
-        result = userService.userRegister(userAccount, userPassword, checkPassword);
-        Assertions.assertTrue(result > 0);
+        result = userService.userRegister(userAccount, userPassword, checkPassword, number);
+        Assertions.assertTrue(result < 0);
     }
 }

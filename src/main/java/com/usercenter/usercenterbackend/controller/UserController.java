@@ -28,8 +28,9 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) return null;
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        String number = userRegisterRequest.getNumber();
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, number)) return null;
+        return userService.userRegister(userAccount, userPassword, checkPassword, number);
     }
 
     @PostMapping("/login")
