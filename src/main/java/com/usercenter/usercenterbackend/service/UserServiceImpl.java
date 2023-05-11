@@ -113,6 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public User getInsensitiveUser(User user) {
+        if (user == null) return null;
         User insensitiveUser = new User();
         insensitiveUser.setId(user.getId());
         insensitiveUser.setUsername(user.getUsername());
