@@ -127,6 +127,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         insensitiveUser.setRole(user.getRole());
         return insensitiveUser;
     }
+
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        request.getSession().removeAttribute(LOGIN_STATE);
+        return 1;
+    }
 }
 
 

@@ -35,4 +35,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     User getInsensitiveUser(User user);
+
+    int userLogout(HttpServletRequest request);
 }
