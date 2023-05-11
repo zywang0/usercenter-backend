@@ -40,6 +40,17 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) return null;
         return userService.userLogin(userAccount, userPassword, request);
     }
+
+    @GetMapping("/current")
+    public User getCurrentUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) return null;
+        long id = currentUser.getId();
+        User user = userService.getById(id);
+        return userService.getInsensitiveUser(user);
+    }
+
     @GetMapping("/search")
     public List<User> searchUsers(String username, HttpServletRequest request) {
         if (notAdmin(request)) return new ArrayList<>();
