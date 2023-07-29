@@ -2,6 +2,8 @@ package com.usercenter.usercenterbackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.usercenter.usercenterbackend.common.ErrorCode;
+import com.usercenter.usercenterbackend.exception.BusinessException;
 import com.usercenter.usercenterbackend.model.User;
 import com.usercenter.usercenterbackend.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -28,38 +30,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword, String number) {
         //Verification
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, number)) {
-            return -1;
-        }
-        if (userAccount.length() < 4) {
-            return -1;
-        }
-        if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            return -1;
-        }
-        if (number.length() > 5) return -1;
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, number))
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        if (userAccount.length() < 4) throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
+        if (userPassword.length() < 8 || checkPassword.length() < 8)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        if (number.length() > 5) throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号过长");
 
         //userAccount can't contain special characters
         String validPatter = "[`~!@#$%^&*()+=|{}':;',\\\\\\\\[\\\\\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPatter).matcher(userAccount);
-        if (matcher.find()) return -1;
+        if (matcher.find()) throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名密码不匹配");
 
         //Password and confirmation password must be the same
         if (!userPassword.equals(checkPassword)) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
 
         //userAccount can't duplicate
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         long count = userMapper.selectCount(queryWrapper);
-        if (count > 0) return -1;
+        if (count > 0) throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
 
         //user number can't duplicate
         queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("number", number);
         count = userMapper.selectCount(queryWrapper);
-        if (count > 0) return -1;
+        if (count > 0) throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号重复");
 
         //Encrypt user password
         String encryption = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
